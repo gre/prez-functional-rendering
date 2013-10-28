@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>Functional VS Procedural rendering</title>
+
+    <meta name="description" content="Functional VS Procedural rendering">
+    <meta name="author" content="Gaëtan Renaudeau">
+    <base href="" target="_blank" />
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="css/reveal.min.css">
+    <link rel="stylesheet" href="css/theme/moon.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+      document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+    </script>
+
+    <style type="text/css">
+      .reveal table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .reveal th {
+        color: #fff;
+      }
+      .reveal th, .reveal td {
+        border: 1px solid #fff;
+        padding: 6px 16px;
+      }
+      .reveal strong {
+        color: #b3c1c1;
+      }
+    </style>
+
+    <!--[if lt IE 9]>
+    <script src="lib/js/html5shiv.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+        <section data-markdown>
+          # Functional rendering
+
+          ## vs Procedural rendering
+
+          by Gaëtan Renaudeau - [@greweb](http://twitter.com/greweb)
+        </section>
+
+        <section data-markdown>
+          # Summary
+
+          * Principle
+          * Comparison of paradigms
+          * Comparison by examples
+          * Composability
+          * Use-cases
+          * Hands-on demo
+        </section>
+
+        <section>
+          <section data-markdown>
+          # Principle
+          </section>
+          
+          <section data-markdown>
+          ### "Procedural" rendering
+
+          A set of procedures to draw primitive shapes on a viewport.
+
+          ---
+
+          ### "Functional" rendering
+
+          A function...
+          
+          **`ƒ : Point => Color`**
+
+          ...for drawing all pixels
+
+          **`∀ p, image.data[p] ← ƒ(p)`**
+          </section>
+
+          <section data-markdown>
+          # Libs
+
+          ### "Procedural" rendering
+          *e.g.: HTML Canvas, Java Graphics, Processing,...*
+
+          ---
+
+          ### "Functional" rendering
+          *e.g.: WebGL GLSL*
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+            # Comparisons
+            ## of both approaches
+          </section>
+          <section data-markdown>
+            | Procedural      |   Functional |
+            |---------------- |:------------:|
+            | **set of drawing primitives** | **ƒ: `position => color`** |
+            | **bitmap** | **vectorial** (by design) |
+            | *"draw here"* | *"am I here?"* |
+            | what? / where? | how? |
+            | simple, imperative | math, functional |
+            | generally faster | generally slower |
+            | restricted to primitives | powerful, composable |
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+            # GLSL toolkit
+
+            [from the GLSL spec](http://www.khronos.org/registry/gles/specs/2.0/GLSL_ES_Specification_1.0.17.pdf)
+          </section>
+          <section data-markdown>
+            ## Types
+            First of all, GLSL has a set of useful types.
+
+            Some of them:
+
+            * vec2, vec3, vec4
+            * mat2, mat3, mat4
+            * sampler2D
+          </section>
+          <section data-markdown>
+            ## Types constructions
+
+            ```glsl
+            vec2 v2 = vec2(1.0, 1.0); // or vec2(1.0)
+            vec3 v3 = vec3(v2, 1.0);
+            vec2 v2again = v3.xy;
+            v3.y = 2.0;
+            v3.xy = vec2(2.0, 3.0);
+            ```
+          </section>
+          <section data-markdown>
+            ## Vector are either position or color
+
+            ```glsl
+            vec3 red = vec3(1.0, 0.0, 0.0); // rgb
+            // red.r , red.g , red.b
+            vec4 red_ = vec4(red, 1.0); // rgba
+            // red === red_.rgb
+
+            vec4 color = vec4(0.0, 1.0, 0.0, 1.0);
+            // color.rgb is same as color.xyz
+            ```
+
+            * `{x, y, z, w}` Useful when accessing vectors that represent points or normals
+            * `{r, g, b, a}` Useful when accessing vectors that represent colors
+            * `{s, t, p, q}` Useful when accessing vectors that represent texture coordinates
+          </section>
+          <section data-markdown>
+            ## Arithmetic operations on those types
+
+            ```glsl
+            vec2 a = vec2(1.0, 2.0), b = vec2(3.0, 4.0);
+            a + b
+            a - b
+            a * b
+            a / b
+            ```
+          </section>
+          <section data-markdown>
+            ## Functions
+            Also, GLSL has a lot of functions to work with these types.
+
+            They are simple functions but very powerful all together.
+
+            Most of them works on all dimension types (float, vec2, vec3, vec4), `genType` is used to refer to these types.
+          </section>
+          <section data-markdown>
+            ## max, min
+
+            *take the max (or the min) between two values.*
+
+            ```glsl
+            genType min (genType x, genType y)
+            genType max (genType x, genType y)
+            ```
+
+            e.g.
+            ```
+            max(1.2, 4.5) == 4.5
+            min(1.2, 4.5) == 1.2
+            ```
+          </section>
+          <section data-markdown>
+            ## floor ⌊x⌋
+            ## ceil ⌈x⌉
+
+            *upper / lower round a value.*
+
+            ```glsl
+            genType floor (genType x)
+            genType ceil (genType x)
+            ```
+
+            e.g.
+            ```
+            floor(1.2) == 1.0
+            ceil(1.2) == 2.0
+            ```
+
+            also
+            ```
+            floor(vec3(1.2, 2.2, 3.5)) == vec3(1.0, 2.0, 3.0)
+            ```
+          </section>
+          <section data-markdown>
+            ## fract
+
+            *returns the fractional part of x*
+
+            ```glsl
+            genType fract (genType x)
+            ```
+
+            equivalent to:
+
+            ```glsl
+            x – floor (x)
+            ```
+          </section>
+          <section data-markdown>
+            ## mod
+
+            *do a modulo on floating values.*
+
+            ```glsl
+            genType mod (genType x, float y)
+            ```
+
+            is basically:
+
+            ```glsl
+            x – y * floor (x/y)
+            ```
+          </section>
+          <section data-markdown>
+            ## clamp
+
+            *constraints a value between a min and a max value.*
+
+            ```glsl
+            genType clamp (genType x, genType minVal, genType maxVal)
+            ```
+
+            will returns
+
+            ```glsl
+            min (max (x, minVal), maxVal)
+            ```
+          </section>
+          <section data-markdown>
+            ## mix
+
+            *mixes two values `x` and `y` (linear blend) with a criteria `a`.*
+
+            ```glsl
+            genType mix (genType x, genType y, float a)
+            ```
+
+            will returns
+
+            ```glsl
+            x*(1.-a)+y*a
+            ```
+          </section>
+          <section data-markdown>
+            ## smoothstep
+
+            *normalize, constraints and smooth-interpolate a value.*
+
+            ```glsl
+            genType smoothstep (genType edge0, genType edge1, genType x)
+            ```
+
+            implementation:
+            ```glsl
+            genType t;
+            t = clamp ((x – edge0) / (edge1 – edge0), 0, 1);
+            return t * t * (3 – 2 * t);
+            ```
+          </section>
+          <section data-markdown>
+          ![](./img/smoothstep_schema.png)
+          </section>
+          <section data-markdown>
+            ## distance
+
+            *compute the distance between two values (float or vectors).*
+
+            ```glsl
+            float distance (genType p0, genType p1)
+            ```
+
+            implementation:
+            ```glsl
+            length (p0 – p1)
+            ```
+          </section>
+          <section data-markdown>
+            ## Much more vector functions
+
+            * length
+            * dot
+            * cross
+            * normalize
+            * ...
+          </section>
+          <section data-markdown>
+            ## Classical math functions
+
+            * pow
+            * sqrt
+            * exp
+            * log
+            * ...
+          </section>
+          <section data-markdown>
+            ## Classical trigonometric functions
+
+            * cos, sin, tan
+            * acos, asin, atan
+            * radians, degrees
+            * ...
+          </section>
+          <section data-markdown>
+            ## texture2D
+
+            *Lookup the pixel color of a position in a sampler2D.*
+
+            ```glsl
+            vec4 texture2D (sampler2D sampler, vec2 coord)
+            ```
+
+            *(There is obviously interpolation)*
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+          # Some examples
+          to help you understand both paradigms
+          </section>
+          <section data-markdown>
+            ### Canvas 2D
+            ```javascript
+            var canvas = document.getElementById("domcanvasid");
+            var ctx = canvas.getContext("2d");
+            ```
+          </section>
+          <section data-markdown>
+          ### WebGL GLSL
+
+          Javascript
+          ```javascript
+          var ctx = canvas.getContext("webgl");
+          // ... much more JS to initialize things..
+          ```
+
+          and the GLSL:
+
+          ```glsl
+          void main (void) {
+            // gl_FragCoord.xy is the current position
+            gl_FragColor = vec4(r, g, b, a); // set the color
+          }
+          ```
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+          ## Rectangle
+
+          ![](./img/rect.png)
+          </section>
+          <section data-markdown>
+            ### Canvas 2D
+
+            ```javascript
+            ctx.fillStyle = "red";
+            ctx.fillRect(x, y, w, h)
+            ```
+          </section>
+          <section data-markdown>
+          ### GLSL
+
+          ```glsl
+          bool inRect (vec2 position, float x, float y, float w, float h) {
+            return position.x > x   && position.y > y 
+                && position.x < x+w && position.y < y+h;
+          }
+          ```
+
+          ```glsl
+          void main (void) {
+            if (inRect(gl_FragCoord.xy, 100.0, 100.0, 200.0, 150.0)) {
+              gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // red
+            }
+            else {
+              gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // black background
+            }
+          }
+          ```
+          </section>
+
+          <section data-markdown>
+            ### Summary
+
+            Trivial in both cases.
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+          ## Circle
+
+          ![](./img/circle.png)
+          </section>
+          <section data-markdown>
+            ### Canvas 2D
+
+            ```javascript
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2*Math.PI, false)
+            ctx.fill();
+            ```
+          </section>
+          <section data-markdown>
+          ### GLSL
+
+          ```glsl
+          bool inCircle (vec2 position, float x, float y, float r) {
+            return distance(position, vec2(x, y)) < r;
+          }
+          ```
+
+          ```glsl
+          void main (void) {
+            if (inCircle(gl_FragCoord.xy, 100.0, 100.0, 50.0)) {
+              gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // red
+            }
+            else {
+              gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // black background
+            }
+          }
+          ```
+          </section>
+
+          <section data-markdown>
+            ### Summary
+
+            Trivial in both cases.
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+          ## Line
+
+          ![](./img/line.png)
+          </section>
+          <section data-markdown>
+            ### Canvas 2D
+
+            ```javascript
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ```
+          </section>
+          <section data-markdown>
+          ### GLSL
+
+          ```glsl
+          bool onLine (vec2 p, float a, float b, float lineWidth) {
+            // y = a * x + b
+            return distance (p.y, a*p.x+b) < lineWidth;
+          }
+          ```
+
+          Exemple:
+
+          ```glsl
+          uniform vec2 resolution;
+          const vec4 RED = vec4(1.0, 0.0, 0.0, 1.0);
+          const vec4 BLACK = vec4(0.0, 0.0, 0.0, 1.0);
+
+          void main( void ) {
+            vec2 p = gl_FragCoord.xy / resolution.xy;
+            gl_FragColor = onLine(p, 1.0, 0.0, 0.01) ? RED : BLACK;
+          }
+          ```
+
+          [Playground](http://glsl.heroku.com/e#11721.0)
+          </section>
+
+          <section data-markdown>
+            ### Summary
+
+            The procedural Path is quite trivial and easy to use.
+
+            Making a Segment in functional rendering is more complex but still possible.
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+          ## Curve
+
+          ![](./img/cos.png)
+          </section>
+          <section data-markdown>
+            ### Canvas 2D
+
+            ```javascript
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+            ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y);
+            // ...
+            ctx.stroke();
+            ```
+
+            ![](./img/bezier.png)
+          </section>
+          <section data-markdown>
+          ### GLSL
+
+          ```glsl
+bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
+  return distance (p.y, y+mag*cos(p.x*freq)) < lineWidth;
+}
+          ```
+
+          [Playground](http://glsl.heroku.com/e#11721.1)
+          </section>
+
+          <section data-markdown>
+            ### Summary
+
+            Implementing a math formula in Functional rendering is very straighforward.
+
+            A bit more work for the Procedural one: converting the formula to path and bezier curves.
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+          ## Gradient in a Disc
+
+          ![](./img/gradient_disc.png)
+          </section>
+          <section data-markdown>
+            ### Canvas 2D
+
+            ```javascript
+            var g = ctx.createLinearGradient(x-r, 0, x+r, 0); // left to right gradient
+            g.addColorStop(0, "red");
+            g.addColorStop(1, "green");
+            ctx.fillStyle = "red";
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, 2*Math.PI, false)
+            ctx.fill();
+            ```
+          </section>
+          <section data-markdown>
+          ### GLSL
+
+          ```glsl
+          bool inCircle (vec2 position, float x, float y, float r) {
+            return distance(position, vec2(x, y)) < r;
+          }
+
+          vec3 linearGradientX (vec2 p, vec3 from, vec3 to, float x1, float x2) {
+            return mix(from, to, smoothstep(x1, x2, p.x));
+          }
+          ```
+
+          ```glsl
+          const vec3 BLACK = vec3(0.,0.,0.);
+          const vec3 RED = vec3(1.,0.,0.);
+          const vec3 GREEN = vec3(0.,1.,0.);
+          void main (void) {
+            vec2 p = gl_FragCoord.xy / resolution.xy;
+            if (inCircle(p, 0.5, 0.5, 0.3)) {
+              gl_FragColor = vec4(linearGradientX(p, RED, GREEN, 0.2, 0.8), 1.0);
+            }
+            else {
+              gl_FragColor = vec4(BLACK, 1.0);
+            }
+          }
+          ```
+
+          [Playground](http://glsl.heroku.com/e#11738.0)
+          </section>
+
+          <section data-markdown>
+            ### Summary
+            
+            In Canvas 2D we can also doing some `createRadialGradient(x0, y0, r0, x1, y1, r1)`,
+            but that's all for gradient possibilities, there is some gradients you can't do with it,
+            for instance a "Circular Gradient".
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+            ## Image
+
+            ![](./img/nyancat.jpg)
+          </section>
+          <section data-markdown>
+            ### Canvas 2D
+
+            Stretch the image in the plain canvas:
+
+            ```javascript
+            var img = new Image(); img.src="nyancat.jpg"; img.onload = draw;
+            function draw () {
+              ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height);
+            }
+            ```
+          </section>
+          <section data-markdown>
+            ### GLSL
+
+            ```glsl
+            uniform sampler2D img; // uniform means external variables which is setted from JS
+            void main (void) {
+              vec2 p = gl_FragCoord.xy / resolution.xy;
+              gl_FragColor = texture2D(img, p); // stretch it to the full size
+            }
+            ```
+          </section>
+          <section data-markdown>
+            ## Exercice in style: Spritesheets
+
+            http://greweb.me/glsl.js/examples/mario_sprites/
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+            ## Text
+          </section>
+          <section data-markdown>
+            ### Canvas 2D
+
+            ```javascript
+            ctx.font = "bold 160px Helvetica";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = "black";
+            ctx.fillText("Hello World!", ctx.canvas.width/2, ctx.canvas.height/2);
+            ```
+          </section>
+          <section data-markdown>
+            ### GLSL
+
+            Nope!
+
+            But,
+
+            You can draw a text with Canvas 2D and use it as a texture.
+
+            http://greweb.me/glsl.js/examples/canvas-text/
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+            # Composability
+          </section>
+
+          <section data-markdown>
+            ## Combine filter conditions
+
+            ```glsl
+            if (inRect(...) && inCircle(...) && underCurveA(...)) {
+              gl_FragColor = // fill some color here
+            }
+            ```
+          </section>
+          
+          <section data-markdown>
+            ## Combine colors
+
+            You can also do arithmetic on colors! like add and multiply.
+
+            ```glsl
+            vec3 c = vec3(0.0);
+            c += mainBackground(p);
+            c += colorForPlayer(p, player);
+            for (var i=0; i < NB_BALLS; ++i) { //>
+            c += colorForBall(p, balls[i]);
+            }
+            c *= mainMask(p); // multiply on colors
+            gl_FragColor = vec4(c, 1.0);
+            ```
+
+            Also perfect for after-effect.
+
+            The code is inspired from [glsl.js' Pong example](http://greweb.me/glsl.js/examples/pong/).
+          </section>
+
+          <section data-markdown>
+            ## Trick the initial position
+
+            Here is a typical use-case of post-processing effects: translate a bit the position from the initial one.
+            E.g.:
+
+            ```glsl
+            unform float time;
+            uniform sampler2D img;
+            void main (void) {
+              vec2 p = gl_FragCoord.xy / resolution.xy;
+              p += 0.05 * vec2(cos(4.0*p.x+time*0.005), sin(4.0*p.y+time*0.003));
+              // do more stuff with p, eventually?
+              gl_FragColor = texture2D(img, p);
+            }
+            ```
+
+            [See it here](./examples/imagetranslate/index.html)
+          </section>
+
+
+        </section>
+
+        <section>
+        <section data-markdown>
+        # Some of my work
+        </section>
+        <section data-markdown>
+          ## Functional rendering applied to logo generation
+
+          Made in Scala on top of Java 2D API.
+          same technique is used: iterates a function on all pixels.
+
+          ![](./img/prismicon.png)
+
+          (prismic.io)
+        </section>
+        <section data-markdown>
+          ## Some games
+
+          * http://greweb.me/dta/
+          * http://greweb.me/glsl.js/examples/pong/
+          * http://greweb.me/glsl.js/examples/snake/
+        </section>
+        </section>
+
+        <section>
+          <section data-markdown>
+            # DIY!
+
+            http://glsl.heroku.com
+
+            a lot of examples + playground for GLSL
+          </section>
+          <section data-markdown>
+            # Demo time!
+
+            ## Mandelbrot fractal
+
+            [Result](http://glsl.heroku.com/e#11742.0)
+          </section>
+        </section>
+
+        <section data-markdown>
+          # Questions?
+
+          twitter: [@greweb](http://twitter.com/greweb)
+        </section>
+
+      </div>
+
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.min.js"></script>
+
+    <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        history: true,
+        center: true,
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+      });
+
+    </script>
+
+  </body>
+</html>

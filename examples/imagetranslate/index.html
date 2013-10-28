@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Image Translate example</title>
+</head>
+<body>
+  <canvas id="viewport" width=400 height=400></canvas>
+
+  <script id="fragment" type="x-shader/x-fragment">
+  precision mediump float;
+  uniform vec2 resolution;
+  uniform float time;
+  uniform sampler2D img;
+
+  void main () {
+    vec2 p = gl_FragCoord.xy / resolution.xy;
+    p += 0.05 * vec2(cos(4.0*p.x+time*0.005), sin(4.0*p.y+time*0.003));
+    gl_FragColor = texture2D(img, p);
+  }
+</script>
+
+  <script type="text/javascript" src="../glsl.min.js"></script>
+  <script type="text/javascript">
+    var img = new Image();
+    img.src = "../../img/nyancat.jpg";
+    img.onload = function () {
+      Glsl({
+      canvas: document.getElementById("viewport"),
+      fragment: document.getElementById("fragment").textContent,
+      variables: {
+        time: 0,
+        img: img
+      },
+      update: function (time, delta) {
+        this.set("time", time);
+        this.sync("img");
+      }
+      }).start();
+    };
+  </script>
+</body>
+</html>
