@@ -97,7 +97,7 @@
           </section>
 
           <section data-markdown>
-          # Libs
+          # Libs/Tech
 
           ### "Procedural" rendering
           *e.g.: HTML Canvas, Java Graphics, Processing,...*
@@ -105,7 +105,7 @@
           ---
 
           ### "Functional" rendering
-          *e.g.: WebGL GLSL*
+          *e.g.: (OpenGL or WebGL) GLSL*
           </section>
         </section>
 
@@ -129,7 +129,10 @@
 
         <section>
           <section data-markdown>
-            # GLSL toolkit
+            # Functional toolkit
+          </section>
+          <section data-markdown>
+            ## Example of GLSL toolkit
 
             [from the GLSL spec](http://www.khronos.org/registry/gles/specs/2.0/GLSL_ES_Specification_1.0.17.pdf)
           </section>
@@ -303,6 +306,10 @@
             t = clamp ((x – edge0) / (edge1 – edge0), 0, 1);
             return t * t * (3 – 2 * t);
             ```
+
+            ---
+
+            **very important one**, also useful for animations.
           </section>
           <section data-markdown>
           ![](./img/smoothstep_schema.png)
@@ -630,7 +637,7 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
           <section data-markdown>
             ### Summary
             
-            In Canvas 2D we can also doing some `createRadialGradient(x0, y0, r0, x1, y1, r1)`,
+            In Canvas 2D we can also do some `createRadialGradient(x0, y0, r0, x1, y1, r1)`,
             but that's all for gradient possibilities, there is some gradients you can't do with it,
             for instance a "Circular Gradient".
           </section>
@@ -713,6 +720,8 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
               gl_FragColor = // fill some color here
             }
             ```
+
+            Easily make shapes from union/intersection of other shapes.
           </section>
           
           <section data-markdown>
@@ -740,10 +749,12 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
             ## Trick the initial position
 
             Here is a typical use-case of post-processing effects: translate a bit the position from the initial one.
+            **You can easily make non-linear transformations!**
+
             E.g.:
 
             ```glsl
-            unform float time;
+            uniform float time;
             uniform sampler2D img;
             void main (void) {
               vec2 p = gl_FragCoord.xy / resolution.xy;
@@ -774,8 +785,34 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
           (prismic.io)
         </section>
         <section data-markdown>
-          ## Some games
+          ## Illuminated.js
 
+          ![](./img/illuminatedjs.jpg)
+
+          Today using Procedural rendering,
+          would be easier and more realistic to use Functional rendering (+ maybe faster in GLSL).
+
+          http://github.com/gre/illuminated.js
+        </section>
+        <section data-markdown>
+          ## glsl.js
+
+          subset of a WebGL library which focus on making the GLSL (OpenGL Shading Language) easy and accessible for vizualisation and game purposes (2D or 3D).
+
+          * http://github.com/gre/glsl.js
+        </section>
+        <section data-markdown>
+          ### Animated blog header
+
+          Uses functional rendering style inside procedural rendering.
+
+          http://greweb.me/javascripts/header.js
+        </section>
+        <section data-markdown>
+          ## Some games
+          ### using Functional Rendering
+
+          * http://greweb.me/js13k/
           * http://greweb.me/dta/
           * http://greweb.me/glsl.js/examples/pong/
           * http://greweb.me/glsl.js/examples/snake/
@@ -802,7 +839,8 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
         <section data-markdown>
           # Questions?
 
-          twitter: [@greweb](http://twitter.com/greweb)
+          * twitter: [@greweb](http://twitter.com/greweb)
+          * http://greweb.me/
         </section>
 
       </div>
