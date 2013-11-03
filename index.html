@@ -67,6 +67,46 @@
 
         <section>
           <section data-markdown>
+          # Principle
+
+          *Procedural* rendering
+
+          VS
+
+          *Functional* rendering
+          </section>
+          
+          <section data-markdown>
+          ### "Procedural" rendering
+
+          The classical way.
+
+          A set of procedures to draw primitive shapes on a viewport.
+
+          ![](./img/shapes.png)
+
+          **Example:** *HTML Canvas, Java Graphics, Processing,...*
+          </section>
+
+          <section data-markdown>
+          ### "Functional" rendering
+
+          A function...
+          
+          **`ƒ : Point => Color`**
+
+          ...for drawing all pixels
+
+          > **`∀ p, image.data[p] ← ƒ(p)`**
+
+          ![](./img/webgl-logo.png)
+
+          **Example:** *(OpenGL or WebGL) **GLSL***
+          </section>
+        </section>
+
+        <section>
+          <section data-markdown>
             # Some history...
           </section>
           <section data-markdown>
@@ -111,38 +151,6 @@
             with modern techs?
 
             Let's call that ***Functional Rendering***.
-          </section>
-        </section>
-
-        <section>
-          <section data-markdown>
-          # Principle
-          </section>
-          
-          <section data-markdown>
-          ### "Procedural" rendering
-
-          A set of procedures to draw primitive shapes on a viewport.
-
-          ![](./img/shapes.png)
-
-          **Example:** *HTML Canvas, Java Graphics, Processing,...*
-          </section>
-
-          <section data-markdown>
-          ### "Functional" rendering
-
-          A function...
-          
-          **`ƒ : Point => Color`**
-
-          ...for drawing all pixels
-
-          > **`∀ p, image.data[p] ← ƒ(p)`**
-
-          ![](./img/webgl-logo.png)
-
-          **Example:** *(OpenGL or WebGL) **GLSL***
           </section>
         </section>
 
@@ -530,7 +538,7 @@
 
             The procedural Path is quite trivial and easy to use.
 
-            Making a Segment in functional rendering is more complex but still possible.
+            Making a Segment in functional rendering is much more complex but still possible.
           </section>
         </section>
 
@@ -711,12 +719,14 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
             ## Combine filter conditions
 
             ```glsl
-            if (inRect(...) && inCircle(...) && underCurveA(...)) {
+            if (!inRect(...) && inCircle(...) && !underCurveA(...)) {
               gl_FragColor = // fill some color here
             }
             ```
 
             Easily make shapes from union/intersection of other shapes.
+
+            ![](./img/intersection.png)
           </section>
           
           <section data-markdown>
@@ -774,12 +784,13 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
             | Procedural      |   Functional |
             |---------------- |:------------:|
             | **set of drawing primitives** | **ƒ: `position => color`** |
-            | **bitmap** | **vectorial** (by design) |
+            | **bitmap** (generally) | **vectorial** (by design) |
             | *"draw here"* | *"am I here?"* |
             | what? / where? | how? |
             | simple, imperative | math, functional |
-            | generally faster | generally slower |
             | restricted to primitives | powerful, composable |
+            | generally faster | generally slower,... |
+            | | but easily scalable on GPU |
           </section>
         </section>
 
@@ -861,7 +872,7 @@ object Java2dPixelWrapper {
 
           --- 
 
-          http://greweb.me/prez-functional-rendering
+          Slides: http://greweb.me/prez-functional-rendering
         </section>
 
       </div>
