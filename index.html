@@ -41,6 +41,9 @@
       .reveal strong {
         color: #b3c1c1;
       }
+      .reveal pre {
+        font-size: .6em;
+      }
     </style>
 
     <!--[if lt IE 9]>
@@ -62,15 +65,53 @@
           by Gaëtan Renaudeau - [@greweb](http://twitter.com/greweb)
         </section>
 
-        <section data-markdown>
-          # Summary
+        <section>
+          <section data-markdown>
+            # Some history...
+          </section>
+          <section data-markdown>
+            ## Atari 2600
 
-          * Principle
-          * Comparison of paradigms
-          * Comparison by examples
-          * Composability
-          * Use-cases
-          * Hands-on demo
+            ![](./img/atari-2600.jpg)
+
+            How rendering was during that time?
+          </section>
+          <section data-markdown>
+            ## Analog TV: Scan line
+
+            ![](./img/raster-scan.png)
+
+            e.g. SECAM: 625 lines, 64 µs/line
+
+            [(wikipedia)](http://en.wikipedia.org/wiki/Analog_television)
+          </section>
+          <section data-markdown>
+            ## Rendering was about
+            * Figuring out what color to set for the current point
+            * jump to a position = waiting a given time
+            * **Repeat** each frame rate
+          </section>
+          <section data-markdown>
+            ### `Position => Color`
+          </section>
+          <section data-markdown>
+            # Then came faster CPU...
+          </section>
+          <section data-markdown>
+            ## Allowing us to
+            ### Make easier rendering abstraction
+
+            ![](./img/shapes.png)
+          </section>
+          <section data-markdown>
+            ## But what about
+
+            that
+            **`Position => Color` function**
+            with modern techs?
+
+            Let's call that **Functional Rendering**.
+          </section>
         </section>
 
         <section>
@@ -83,8 +124,12 @@
 
           A set of procedures to draw primitive shapes on a viewport.
 
-          ---
+          ![](./img/shapes.png)
 
+          **Example:** *HTML Canvas, Java Graphics, Processing,...*
+          </section>
+
+          <section data-markdown>
           ### "Functional" rendering
 
           A function...
@@ -93,92 +138,106 @@
 
           ...for drawing all pixels
 
-          **`∀ p, image.data[p] ← ƒ(p)`**
-          </section>
+          > **`∀ p, image.data[p] ← ƒ(p)`**
 
-          <section data-markdown>
-          # Libs/Tech
+          ![](./img/webgl-logo.png)
 
-          ### "Procedural" rendering
-          *e.g.: HTML Canvas, Java Graphics, Processing,...*
-
-          ---
-
-          ### "Functional" rendering
-          *e.g.: (OpenGL or WebGL) GLSL*
+          **Example:** *(OpenGL or WebGL) **GLSL***
           </section>
         </section>
 
         <section>
           <section data-markdown>
-            # Comparisons
-            ## of both approaches
+            # HTML5 games
+
+            ### Different web techs
+
+            * DOM-based
+            * Canvas 2D
+            * WebGL
           </section>
           <section data-markdown>
-            | Procedural      |   Functional |
-            |---------------- |:------------:|
-            | **set of drawing primitives** | **ƒ: `position => color`** |
-            | **bitmap** | **vectorial** (by design) |
-            | *"draw here"* | *"am I here?"* |
-            | what? / where? | how? |
-            | simple, imperative | math, functional |
-            | generally faster | generally slower |
-            | restricted to primitives | powerful, composable |
+            ## Blazing Race
+
+            ![](./img/blazing-race.png)
+
+            [http://greweb.me/blazing-race/](http://greweb.me/blazing-race/)
+          </section>
+          <section data-markdown>
+            but I didn't finish that game and made a library instead...
+
+            ## Illuminated.js
+
+            ![](./img/illuminatedjs.jpg)
+
+            Today using Procedural rendering,
+            would be easier and more realistic to use Functional rendering (+ maybe faster in GLSL).
+
+            http://github.com/gre/illuminated.js
+          </section>
+          <section data-markdown>
+            I've played with WebGL shaders (GLSL) and made
+            ## glsl.js
+
+            a subset of a WebGL library which focus on making the GLSL (OpenGL Shading Language) easy and accessible for vizualisation and game purposes (2D or 3D).
+
+            **http://github.com/gre/glsl.js**
+          </section>
+          <section data-markdown>
+            ## Some games
+            ### using WebGL & GLSL
+
+            * http://greweb.me/dta/
+            * http://greweb.me/glsl.js/examples/pong/
+            * http://greweb.me/glsl.js/examples/snake/
+            * http://greweb.me/js13k/
           </section>
         </section>
 
         <section>
           <section data-markdown>
-            # Functional toolkit
+            # Functional rendering
+            ## needs utility functions
           </section>
           <section data-markdown>
             ## Example of GLSL toolkit
 
-            [from the GLSL spec](http://www.khronos.org/registry/gles/specs/2.0/GLSL_ES_Specification_1.0.17.pdf)
+            [GLSL spec](http://www.khronos.org/registry/gles/specs/2.0/GLSL_ES_Specification_1.0.17.pdf)
           </section>
           <section data-markdown>
             ## Types
-            First of all, GLSL has a set of useful types.
 
-            Some of them:
+            GLSL has some useful types.
 
-            * vec2, vec3, vec4
-            * mat2, mat3, mat4
-            * sampler2D
+            * **float**
+            * **vectors** : `vec2`, `vec3`, `vec4`
+            * **matrices** : `mat2`, `mat3`, `mat4`
+            * **texture** : `sampler2D`
           </section>
           <section data-markdown>
-            ## Types constructions
-
-            ```glsl
-            vec2 v2 = vec2(1.0, 1.0); // or vec2(1.0)
-            vec3 v3 = vec3(v2, 1.0);
-            vec2 v2again = v3.xy;
-            v3.y = 2.0;
-            v3.xy = vec2(2.0, 3.0);
-            ```
-          </section>
-          <section data-markdown>
-            ## Vector are either position or color
+            ## Vectors used for position or color
 
             ```glsl
             vec3 red = vec3(1.0, 0.0, 0.0); // rgb
             // red.r , red.g , red.b
-            vec4 red_ = vec4(red, 1.0); // rgba
-            // red === red_.rgb
+            vec4 reda = vec4(red, 1.0); // rgba
+            // red === reda.rgb
 
             vec4 color = vec4(0.0, 1.0, 0.0, 1.0);
-            // color.rgb is same as color.xyz
+            // color.rgb is equivalent to color.xyz
             ```
 
-            * `{x, y, z, w}` Useful when accessing vectors that represent points or normals
-            * `{r, g, b, a}` Useful when accessing vectors that represent colors
-            * `{s, t, p, q}` Useful when accessing vectors that represent texture coordinates
+            * `{x, y, z, w}` : points/normals
+            * `{r, g, b, a}` : colors
+            * `{s, t, p, q}` : texture coordinates
           </section>
           <section data-markdown>
             ## Arithmetic operations on those types
 
             ```glsl
-            vec2 a = vec2(1.0, 2.0), b = vec2(3.0, 4.0);
+            vec2 a = vec2(1.0, 2.0);
+            vec2 b = vec2(3.0, 4.0);
+
             a + b
             a - b
             a * b
@@ -187,132 +246,24 @@
           </section>
           <section data-markdown>
             ## Functions
-            Also, GLSL has a lot of functions to work with these types.
+            GLSL has a lot of functions to work with these types.
 
             They are simple functions but very powerful all together.
 
             Most of them works on all dimension types (float, vec2, vec3, vec4), `genType` is used to refer to these types.
           </section>
           <section data-markdown>
-            ## max, min
+            ## Classical math functions
 
-            *take the max (or the min) between two values.*
-
-            ```glsl
-            genType min (genType x, genType y)
-            genType max (genType x, genType y)
-            ```
-
-            e.g.
-            ```
-            max(1.2, 4.5) == 4.5
-            min(1.2, 4.5) == 1.2
-            ```
-          </section>
-          <section data-markdown>
-            ## floor ⌊x⌋
-            ## ceil ⌈x⌉
-
-            *upper / lower round a value.*
-
-            ```glsl
-            genType floor (genType x)
-            genType ceil (genType x)
-            ```
-
-            e.g.
-            ```
-            floor(1.2) == 1.0
-            ceil(1.2) == 2.0
-            ```
-
-            also
-            ```
-            floor(vec3(1.2, 2.2, 3.5)) == vec3(1.0, 2.0, 3.0)
-            ```
-          </section>
-          <section data-markdown>
-            ## fract
-
-            *returns the fractional part of x*
-
-            ```glsl
-            genType fract (genType x)
-            ```
-
-            equivalent to:
-
-            ```glsl
-            x – floor (x)
-            ```
-          </section>
-          <section data-markdown>
-            ## mod
-
-            *do a modulo on floating values.*
-
-            ```glsl
-            genType mod (genType x, float y)
-            ```
-
-            is basically:
-
-            ```glsl
-            x – y * floor (x/y)
-            ```
-          </section>
-          <section data-markdown>
-            ## clamp
-
-            *constraints a value between a min and a max value.*
-
-            ```glsl
-            genType clamp (genType x, genType minVal, genType maxVal)
-            ```
-
-            will returns
-
-            ```glsl
-            min (max (x, minVal), maxVal)
-            ```
-          </section>
-          <section data-markdown>
-            ## mix
-
-            *mixes two values `x` and `y` (linear blend) with a criteria `a`.*
-
-            ```glsl
-            genType mix (genType x, genType y, float a)
-            ```
-
-            will returns
-
-            ```glsl
-            x*(1.-a)+y*a
-            ```
-          </section>
-          <section data-markdown>
-            ## smoothstep
-
-            *normalize, constraints and smooth-interpolate a value.*
-
-            ```glsl
-            genType smoothstep (genType edge0, genType edge1, genType x)
-            ```
-
-            implementation:
-            ```glsl
-            genType t;
-            t = clamp ((x – edge0) / (edge1 – edge0), 0, 1);
-            return t * t * (3 – 2 * t);
-            ```
-
-            ---
-
-            **very important one**, also useful for animations.
-          </section>
-          <section data-markdown>
-          ![](./img/smoothstep_schema.png)
+            * min, max
+            * floor, ceil
+            * mod
+            * fract
+            * pow
+            * sqrt
+            * exp
+            * log
+            * ...
           </section>
           <section data-markdown>
             ## distance
@@ -338,15 +289,6 @@
             * ...
           </section>
           <section data-markdown>
-            ## Classical math functions
-
-            * pow
-            * sqrt
-            * exp
-            * log
-            * ...
-          </section>
-          <section data-markdown>
             ## Classical trigonometric functions
 
             * cos, sin, tan
@@ -364,6 +306,59 @@
             ```
 
             *(There is obviously interpolation)*
+          </section>
+          <section data-markdown>
+            ## mix
+
+            *mixes two values `x` and `y` (linear blend) with a criteria `a`.*
+
+            ```glsl
+            genType mix (genType x, genType y, float a)
+            ```
+
+            will returns
+
+            ```glsl
+            x*(1.-a)+y*a
+            ```
+          </section>
+          <section data-markdown>
+            ## clamp
+
+            *constraints a value between a min and a max value.*
+
+            ```glsl
+            genType clamp (genType x, genType minVal, genType maxVal)
+            ```
+
+            will returns
+
+            ```glsl
+            min (max (x, minVal), maxVal)
+            ```
+          </section>
+          <section data-markdown>
+            ## smoothstep
+
+            *normalize, constraints and smooth-interpolate a value.*
+
+            ```glsl
+            genType smoothstep (genType edge0, genType edge1, genType x)
+            ```
+
+            implementation:
+            ```glsl
+            genType t;
+            t = clamp ((x – edge0) / (edge1 – edge0), 0, 1);
+            return t * t * (3 – 2 * t);
+            ```
+
+            ---
+
+            **very important one**, also useful for animations.
+          </section>
+          <section data-markdown>
+          ![](./img/smoothstep_schema.png)
           </section>
         </section>
 
@@ -771,59 +766,81 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
         </section>
 
         <section>
+          <section data-markdown>
+            # Summary
+            ## of both approaches
+          </section>
+          <section data-markdown>
+            | Procedural      |   Functional |
+            |---------------- |:------------:|
+            | **set of drawing primitives** | **ƒ: `position => color`** |
+            | **bitmap** | **vectorial** (by design) |
+            | *"draw here"* | *"am I here?"* |
+            | what? / where? | how? |
+            | simple, imperative | math, functional |
+            | generally faster | generally slower |
+            | restricted to primitives | powerful, composable |
+          </section>
+        </section>
+
+        <section>
         <section data-markdown>
-        # Some of my work
+        # Other examples
+
+        of functional rendering in different techs
         </section>
         <section data-markdown>
-          ## Functional rendering applied to logo generation
+          ## Wrapping Java2D API in Scala
+          ### for functional rendering
 
-          Made in Scala on top of Java 2D API.
-          same technique is used: iterates a function on all pixels.
+          ```scala
+import java.awt._
+import java.awt.image._
+case class Vec2 (x: Double, y: Double)
+object Java2dPixelWrapper {
+  def render (width: Int, height: Int, getColor: Vec2 => Color) = {
+    var image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+    for {
+      x <- 0 until width;
+      y <- 0 until height
+    } {
+      var c = getColor(Vec2(x.toDouble / width.toDouble, y.toDouble / height.toDouble))
+      image.setRGB(x, y, c.getRGB)
+    }
+    image
+  }
+}
+          ```
+
+          Iterates a scala function on all pixels.
+        </section>
+        <section data-markdown>
+          ## Use case:
+          ### Functional rendering for generative logo
 
           ![](./img/prismicon.png)
 
-          (prismic.io)
-        </section>
-        <section data-markdown>
-          ## Illuminated.js
-
-          ![](./img/illuminatedjs.jpg)
-
-          Today using Procedural rendering,
-          would be easier and more realistic to use Functional rendering (+ maybe faster in GLSL).
-
-          http://github.com/gre/illuminated.js
-        </section>
-        <section data-markdown>
-          ## glsl.js
-
-          subset of a WebGL library which focus on making the GLSL (OpenGL Shading Language) easy and accessible for vizualisation and game purposes (2D or 3D).
-
-          * http://github.com/gre/glsl.js
+          made at my work for [prismic.io](http://prismic.io)
         </section>
         <section data-markdown>
           ### Animated blog header
 
           Uses functional rendering style inside procedural rendering.
 
+          ![](./img/blog-header.png)
+
           http://greweb.me/javascripts/header.js
         </section>
-        <section data-markdown>
-          ## Some games
-          ### using Functional Rendering
+        </section>
 
-          * http://greweb.me/js13k/
-          * http://greweb.me/dta/
-          * http://greweb.me/glsl.js/examples/pong/
-          * http://greweb.me/glsl.js/examples/snake/
-        </section>
-        </section>
 
         <section>
           <section data-markdown>
-            # DIY!
+            ### Explore and Experiment Yourself!
 
-            http://glsl.heroku.com
+            * http://glsl.heroku.com
+            * http://shadertoy.com
+            * http://webglplayground.net
 
             a lot of examples + playground for GLSL
           </section>
@@ -832,7 +849,7 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
 
             ## Mandelbrot fractal
 
-            [Result](http://glsl.heroku.com/e#11742.0)
+            [Result](http://glsl.heroku.com/e#18.0)
           </section>
         </section>
 
@@ -841,6 +858,10 @@ bool onCos (vec2 p, float mag, float freq, float y, float lineWidth) {
 
           * twitter: [@greweb](http://twitter.com/greweb)
           * http://greweb.me/
+
+          --- 
+
+          http://greweb.me/prez-functional-rendering
         </section>
 
       </div>
